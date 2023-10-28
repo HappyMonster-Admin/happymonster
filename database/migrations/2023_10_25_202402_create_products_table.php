@@ -23,7 +23,6 @@ return new class extends Migration
             $table->boolean('gross_profit')->default(false);
             $table->boolean('bti')->default(false);
             $table->boolean('new')->default(false);
-            $table->string('barcode')->nullable()->default(null);
             $table->boolean('sustainable')->default(false);
             $table->string('sustainable_message', 60)->nullable();
             $table->string('image')->nullable();

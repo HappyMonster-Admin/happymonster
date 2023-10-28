@@ -11,9 +11,11 @@ use Illuminate\Support\Str;
 use Filament\Resources\Resource;
 use App\Forms\Components\BarCode;
 use Filament\Forms\Components\Tabs;
+use Filament\Tables\Actions\Action;
 use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Section;
 use Filament\Forms\Components\Textarea;
+use Illuminate\Database\Eloquent\Model;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\FileUpload;
@@ -29,7 +31,7 @@ class ProductResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
-    protected static ?string $navigationGroup = 'Shop';
+    protected static ?string $navigationGroup = 'SHOP';
 
     protected static ?int $navigationSort = 0;
 
@@ -37,6 +39,23 @@ class ProductResource extends Resource
     {
         return static::getModel()::count();
     }
+
+    public static function getGloballySearchableAttributes(): array
+{
+    return ['article_name', 'reference'];
+}
+
+protected static ?string $recordTitleAttribute = 'reference';
+
+protected static int $globalSearchResultsLimit = 20;
+
+public static function getGlobalSearchResultDetails(Model $record): array
+{
+    return [
+        'Article name' => $record->article_name,
+        'Reference' => $record->reference,
+    ];
+}
 
     public static function form(Form $form): Form
     {
@@ -85,8 +104,8 @@ class ProductResource extends Resource
                                     ->dehydrated()
                                     ->required(),
                                 BarCode::make('barcode')
-                                ->label('BarCode'),
-                            ]),
+                                ->label('Bar code'),
+                            ])->columns(2),
                         Tabs\Tab::make('Stocks')
                             ->schema([
                                 // ...
