@@ -9,7 +9,7 @@ use Filament\Forms\Form;
 use Filament\Tables\Table;
 use Illuminate\Support\Str;
 use Filament\Resources\Resource;
-use App\Forms\Components\barcode;
+use App\Forms\Components\BarCode;
 use Filament\Forms\Components\Tabs;
 use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Section;
@@ -84,7 +84,8 @@ class ProductResource extends Resource
                                     ->disabled()
                                     ->dehydrated()
                                     ->required(),
-                                barcode::make('barcode'),
+                                BarCode::make('barcode')
+                                ->label('BarCode'),
                             ]),
                         Tabs\Tab::make('Stocks')
                             ->schema([
