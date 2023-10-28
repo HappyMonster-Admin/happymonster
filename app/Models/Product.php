@@ -33,6 +33,7 @@ class Product extends Model
         'is_featured',
         'type',
         'style_group',
+        'short_description',
         'designer_unicode',
         'margin',
         'price_level',
