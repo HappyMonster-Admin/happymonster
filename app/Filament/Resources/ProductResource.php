@@ -15,10 +15,14 @@ use Filament\Tables\Actions\Action;
 use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Section;
 use Filament\Forms\Components\Textarea;
+use Filament\Tables\Columns\IconColumn;
+use Filament\Tables\Columns\TextColumn;
 use Illuminate\Database\Eloquent\Model;
 use Filament\Forms\Components\TextInput;
+use Filament\Tables\Columns\ImageColumn;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\FileUpload;
+use Filament\Tables\Columns\ToggleColumn;
 use Illuminate\Database\Eloquent\Builder;
 use Filament\Forms\Components\MarkdownEditor;
 use App\Filament\Resources\ProductResource\Pages;
@@ -65,26 +69,20 @@ public static function getGlobalSearchResultDetails(Model $record): array
                 Section::make()
                     ->schema([
                         // ...
-                        TextInput::make('article_name'),
-                        TextInput::make('hmb')
-                            ->numeric()
-                            ->minValue(1)
-                            ->maxValue(100),
-                        TextInput::make('pa')
-                            ->numeric()
-                            ->minValue(1)
-                            ->maxValue(100),
-                        TextInput::make('slug'),
-                        TextInput::make('price')
-                            ->numeric()
-                            ->minValue(1)
-                            ->maxValue(100),
-                        DatePicker::make('sales_start_date'),
-                        TextInput::make('article_per_package')
-                            ->numeric()
-                            ->minValue(1)
-                            ->maxValue(100),
-                    ]),
+                        TextInput::make('article_name')->required()
+                        ->live(onBlur: true)
+                        ->afterStateUpdated(function(string $operation, $state, Forms\Set $set) {
+                            if ($operation !== 'create') {
+                                return;
+                            }
+                            $set('slug', Str::slug($state));
+                        }),
+                        TextInput::make('slug')
+                            ->disabled()
+                            ->dehydrated()
+                            ->required()
+                            ->unique(Product::class, 'slug', ignoreRecord: true),
+                    ])->columns('2'),
                 Tabs::make('Label')
                     ->tabs([
                         Tabs\Tab::make('Description')
@@ -93,6 +91,11 @@ public static function getGlobalSearchResultDetails(Model $record): array
                                 FileUpload::make('image'),
                                 Textarea::make('short_description'),
                                 MarkdownEditor::make('description'),
+                                Section::make('')
+                                ->schema([
+                                    TextInput::make('hmb'),
+                                    TextInput::make('pa'),
+                                ])->columns('2'),
                             ]),
                         Tabs\Tab::make('Details')
                             ->schema([
@@ -117,6 +120,12 @@ public static function getGlobalSearchResultDetails(Model $record): array
                         Tabs\Tab::make('Pricing')
                             ->schema([
                                 // ...
+                                TextInput::make('price')
+                                    ->numeric()
+                                    ->minValue(1)
+                                    ->maxValue(100)
+                                    ->rules('regex:/^\d{1,6}(\.\d{0,2})?$/')
+                                    ->required(),
                             ]),
                         Tabs\Tab::make('SEO')
                             ->schema([
@@ -125,6 +134,11 @@ public static function getGlobalSearchResultDetails(Model $record): array
                         Tabs\Tab::make('Options')
                             ->schema([
                                 // ...
+                                DatePicker::make('sales_start_date'),
+                                TextInput::make('article_per_package')
+                                    ->numeric()
+                                    ->minValue(1)
+                                    ->maxValue(100),
                             ]),
                     ])
                     ->persistTabInQueryString()
@@ -137,12 +151,43 @@ public static function getGlobalSearchResultDetails(Model $record): array
         return $table
             ->columns([
                 //
+                TextColumn::make('reference'),
+                ImageColumn::make('image')
+                    ->circular(),
+                TextColumn::make('article_name')
+                    ->searchable()
+                    ->sortable(),
+                TextColumn::make('hmb')
+                    ->label('HMB'),
+                TextColumn::make('pa')
+                ->label('PA'),
+                TextColumn::make('price')
+                    ->money('eur')
+                    ->sortable()
+                    ->toggleable(),
+                    IconColumn::make('is_visible')
+                    ->sortable()
+                    ->toggleable()
+                    ->label('Visible')
+                    ->boolean(),
+                IconColumn::make('is_featured')
+                    ->sortable()
+                    ->toggleable()
+                    ->label('Feature')
+                    ->boolean(),
+                TextColumn::make('created_at')
+                    ->dateTime('d-m-Y')
+                    ->sortable(),
             ])
             ->filters([
                 //
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
+                Tables\Actions\ActionGroup::make([
+                    Tables\Actions\ViewAction::make(),
+                    Tables\Actions\EditAction::make(),
+                    Tables\Actions\DeleteAction::make()
+                ])
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
