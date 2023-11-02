@@ -16,6 +16,8 @@
         "laravel/tinker": "^2.8",
         "livewire/livewire": "^3.0",
         "milon/barcode": "^10.0",
+        "psr/simple-cache": "^2.0",
+        "pxlrbt/filament-excel": "^2.1",
         "pxlrbt/filament-spotlight": "^1.0"
     },
     "require-dev": {
